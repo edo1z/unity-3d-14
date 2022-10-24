@@ -21,10 +21,14 @@ public class Player : MonoBehaviour
     {
         Vector2 direction = _input.GetLook();
         if (direction == Vector2.zero) return;
-        float x = direction.x * _look_sensitive_x;
-        float y = direction.y * _look_sensitive_y * -1;
-        transform.Rotate(0, x, 0, Space.World);
-        _camTarget.transform.Rotate(y, 0, 0, Space.Self);
+        float horizontalAngle = direction.x * _look_sensitive_x;
+        float verticalAngle = direction.y * _look_sensitive_y * -1;
+        transform.Rotate(0, horizontalAngle, 0, Space.World);
+        Vector3 camAngles = _camTarget.transform.eulerAngles;
+        float x = camAngles.x;
+        if (x > 180) x -= 360;
+        verticalAngle = Mathf.Clamp(verticalAngle + x, -90f, 90f);
+        _camTarget.transform.rotation = Quaternion.Euler(verticalAngle, camAngles.y, camAngles.z);
     }
 
     private void Move()
