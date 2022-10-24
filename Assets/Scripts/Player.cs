@@ -27,7 +27,7 @@ public class Player : MonoBehaviour
         float y = direction.y * _look_sensitive_y * -1;
         _camParent.transform.Rotate(0, x, 0, Space.World);
         _camParent.transform.Rotate(y, 0, 0, Space.Self);
-        _mesh.transform.rotation = _camParent.transform.rotation;
+        _mesh.transform.rotation = Quaternion.Euler(0, _camParent.transform.eulerAngles.y, 0);
     }
 
     private void Move()
