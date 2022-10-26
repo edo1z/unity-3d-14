@@ -4,8 +4,8 @@ using UnityEngine.InputSystem;
 public class PlayerInputHandler : MonoBehaviour
 {
     private PlayerInput _input;
-    private Vector2 _move;
-    private Vector2 _look;
+    private Vector2 _move, _look;
+    private bool _run = false;
 
     private void Awake()
     {
@@ -18,6 +18,8 @@ public class PlayerInputHandler : MonoBehaviour
         _input.actions["Move"].canceled += OnMove;
         _input.actions["Look"].performed += OnLook;
         _input.actions["Look"].canceled += OnLook;
+        _input.actions["Run"].started += OnRunStart;
+        _input.actions["Run"].canceled += OnRunStop;
     }
 
     private void OnDisable()
@@ -26,6 +28,8 @@ public class PlayerInputHandler : MonoBehaviour
         _input.actions["Move"].canceled -= OnMove;
         _input.actions["Look"].performed -= OnLook;
         _input.actions["Look"].canceled -= OnLook;
+        _input.actions["Run"].started -= OnRunStart;
+        _input.actions["Run"].canceled -= OnRunStop;
     }
 
     private void OnMove(InputAction.CallbackContext context)
@@ -37,6 +41,16 @@ public class PlayerInputHandler : MonoBehaviour
         _look = context.ReadValue<Vector2>();
     }
 
+    private void OnRunStart(InputAction.CallbackContext context)
+    {
+        _run = true;
+    }
+
+    private void OnRunStop(InputAction.CallbackContext context)
+    {
+        _run = false;
+    }
+
     public Vector2 GetMove()
     {
         return _move;
@@ -45,6 +59,11 @@ public class PlayerInputHandler : MonoBehaviour
     public Vector2 GetLook()
     {
         return _look;
+    }
+
+    public bool GetRun()
+    {
+        return _run;
     }
 
 }

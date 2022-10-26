@@ -3,18 +3,21 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     private float _speed = 5f;
+    private float _run_speed_rate = 2f;
     private float _look_sensitive_x = 0.1f;
     private float _look_sensitive_y = 0.05f;
 
     private GameObject _camTarget;
     private PlayerInputHandler _input;
     private CharacterController _characon;
+    private Animator _animator;
 
     private void Awake()
     {
         TryGetComponent(out _input);
         TryGetComponent(out _characon);
         _camTarget = transform.Find("CameraTarget").gameObject;
+        _animator = transform.GetComponentInChildren<Animator>();
     }
 
     private void Aim()
@@ -34,10 +37,21 @@ public class Player : MonoBehaviour
     private void Move()
     {
         Vector2 direction = _input.GetMove();
-        if (direction == Vector2.zero) return;
+        float speed = _input.GetRun() ? _speed * _run_speed_rate : _speed;
+        if (direction == Vector2.zero)
+        {
+            _animator.SetFloat("MoveSpeed", 0);
+            return;
+        }
+        else
+        {
+            _animator.SetFloat("MoveSpeed", speed);
+            _animator.SetFloat("MoveForward", direction.y);
+            _animator.SetFloat("MoveRight", direction.x);
+        }
         float targetAngle = Mathf.Atan2(direction.x, direction.y) * Mathf.Rad2Deg;
         Vector3 targetDirection = Quaternion.Euler(0, targetAngle, 0) * transform.forward;
-        _characon.Move(targetDirection * _speed * Time.deltaTime);
+        _characon.Move(targetDirection * speed * Time.deltaTime);
     }
 
     private void Update()
