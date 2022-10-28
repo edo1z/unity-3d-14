@@ -5,7 +5,7 @@ public class PlayerInputHandler : MonoBehaviour
 {
     private PlayerInput _input;
     private Vector2 _move, _look;
-    private bool _run = false;
+    private bool _run, _crouch;
 
     private void Awake()
     {
@@ -20,6 +20,8 @@ public class PlayerInputHandler : MonoBehaviour
         _input.actions["Look"].canceled += OnLook;
         _input.actions["Run"].started += OnRunStart;
         _input.actions["Run"].canceled += OnRunStop;
+        _input.actions["Crouch"].started += OnCrouchStart;
+        _input.actions["Crouch"].canceled += OnCrouchStop;
     }
 
     private void OnDisable()
@@ -30,6 +32,8 @@ public class PlayerInputHandler : MonoBehaviour
         _input.actions["Look"].canceled -= OnLook;
         _input.actions["Run"].started -= OnRunStart;
         _input.actions["Run"].canceled -= OnRunStop;
+        _input.actions["Crouch"].started -= OnCrouchStart;
+        _input.actions["Crouch"].canceled -= OnCrouchStop;
     }
 
     private void OnMove(InputAction.CallbackContext context)
@@ -51,6 +55,16 @@ public class PlayerInputHandler : MonoBehaviour
         _run = false;
     }
 
+    private void OnCrouchStart(InputAction.CallbackContext context)
+    {
+        _crouch = true;
+    }
+
+    private void OnCrouchStop(InputAction.CallbackContext context)
+    {
+        _crouch = false;
+    }
+
     public Vector2 GetMove()
     {
         return _move;
@@ -64,6 +78,11 @@ public class PlayerInputHandler : MonoBehaviour
     public bool GetRun()
     {
         return _run;
+    }
+
+    public bool GetCrouch()
+    {
+        return _crouch;
     }
 
 }

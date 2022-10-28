@@ -4,6 +4,7 @@ public class Player : MonoBehaviour
 {
     private float _speed = 5f;
     private float _run_speed_rate = 2f;
+    private float _crouch_speed_rate = 0.5f;
     private float _look_sensitive_x = 0.1f;
     private float _look_sensitive_y = 0.05f;
 
@@ -38,20 +39,28 @@ public class Player : MonoBehaviour
     {
         Vector2 direction = _input.GetMove();
         float speed = _input.GetRun() ? _speed * _run_speed_rate : _speed;
+        if (_input.GetCrouch())
+        {
+            speed = _speed * _crouch_speed_rate;
+        }
+
         if (direction == Vector2.zero)
         {
             _animator.SetFloat("MoveSpeed", 0);
-            return;
         }
         else
         {
+            float targetAngle = Mathf.Atan2(direction.x, direction.y) * Mathf.Rad2Deg;
+            Vector3 targetDirection = Quaternion.Euler(0, targetAngle, 0) * transform.forward;
+            _characon.Move(targetDirection * speed * Time.deltaTime);
+
             _animator.SetFloat("MoveSpeed", speed);
-            _animator.SetFloat("MoveForward", direction.y);
-            _animator.SetFloat("MoveRight", direction.x);
         }
-        float targetAngle = Mathf.Atan2(direction.x, direction.y) * Mathf.Rad2Deg;
-        Vector3 targetDirection = Quaternion.Euler(0, targetAngle, 0) * transform.forward;
-        _characon.Move(targetDirection * speed * Time.deltaTime);
+
+        _animator.SetFloat("MoveForward", direction.y);
+        _animator.SetFloat("MoveRight", direction.x);
+        _animator.SetBool("IsCrouching", _input.GetCrouch());
+        _animator.SetBool("IsGrounded", true);
     }
 
     private void Update()
