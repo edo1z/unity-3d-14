@@ -3,6 +3,7 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     // スピード関連
+    private float _gravity = -9.8f;
     private float _speed = 5f;
     private float _run_speed_rate = 2f;
     private float _crouch_speed_rate = 0.5f;
@@ -22,7 +23,8 @@ public class Player : MonoBehaviour
     private Animator _animator;
 
     // State
-    private bool isCrouching = false;
+    private bool isCrouching, isGrounded;
+    private Vector3 verocity = Vector3.zero;
 
     private void Awake()
     {
@@ -49,28 +51,36 @@ public class Player : MonoBehaviour
     private void Move()
     {
         Vector2 direction = _input.GetMove();
-        float speed = _input.GetRun() ? _speed * _run_speed_rate : _speed;
-        if (isCrouching)
-        {
-            speed = _speed * _crouch_speed_rate;
-        }
 
-        if (direction == Vector2.zero)
+        if (isGrounded)
         {
-            _animator.SetFloat("MoveSpeed", 0);
+            float speed = _input.GetRun() ? _speed * _run_speed_rate : _speed;
+            if (isCrouching)
+            {
+                speed = _speed * _crouch_speed_rate;
+            }
+            if (direction == Vector2.zero)
+            {
+                verocity = Vector3.zero;
+                _animator.SetFloat("MoveSpeed", 0);
+            }
+            else
+            {
+                float targetAngle = Mathf.Atan2(direction.x, direction.y) * Mathf.Rad2Deg;
+                Vector3 targetDirection = Quaternion.Euler(0, targetAngle, 0) * transform.forward;
+                verocity = targetDirection * speed;
+                _characon.Move(verocity * Time.deltaTime);
+                _animator.SetFloat("MoveSpeed", speed);
+            }
         }
         else
         {
-            float targetAngle = Mathf.Atan2(direction.x, direction.y) * Mathf.Rad2Deg;
-            Vector3 targetDirection = Quaternion.Euler(0, targetAngle, 0) * transform.forward;
-            _characon.Move(targetDirection * speed * Time.deltaTime);
-
-            _animator.SetFloat("MoveSpeed", speed);
+            verocity.y += _gravity * Time.deltaTime;
+            _characon.Move(verocity * Time.deltaTime);
         }
-
         _animator.SetFloat("MoveForward", direction.y);
         _animator.SetFloat("MoveRight", direction.x);
-        _animator.SetBool("IsGrounded", true);
+        _animator.SetBool("IsGrounded", isGrounded);
     }
 
     private void UpdatePlayerHeight()
@@ -86,14 +96,13 @@ public class Player : MonoBehaviour
         }
         else
         {
-            float radius = _characon.radius;
             Vector3 start = transform.position;
             Vector3 end = transform.position;
-            start.y += radius;
-            end.y += _player_crouch_height - radius;
+            start.y += _characon.radius;
+            end.y += _player_crouch_height - _characon.radius;
             float distance = _player_height - _player_crouch_height;
             RaycastHit hit;
-            bool canNotStandUp = Physics.CapsuleCast(start, end, radius, Vector3.up, out hit, distance, -1);
+            bool canNotStandUp = Physics.CapsuleCast(start, end, _characon.radius, Vector3.up, out hit, distance, -1);
             if (!canNotStandUp)
             {
                 _characon.height = _player_height;
@@ -105,9 +114,22 @@ public class Player : MonoBehaviour
         }
     }
 
+    private void CheckGrounded()
+    {
+        Vector3 start = transform.position;
+        Vector3 end = transform.position;
+        float height = isCrouching ? _player_crouch_height : _player_height;
+        start.y += _characon.radius;
+        end.y += height - _characon.radius;
+        float distance = 0.01f;
+        RaycastHit hit;
+        isGrounded = Physics.CapsuleCast(start, end, _characon.radius, Vector3.down, out hit, distance, -1);
+    }
+
     private void Update()
     {
         Aim();
+        CheckGrounded();
         UpdatePlayerHeight();
         Move();
     }
