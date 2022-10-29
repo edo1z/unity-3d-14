@@ -24,6 +24,7 @@ public class Player : MonoBehaviour
 
     // State
     private bool isCrouching, isGrounded;
+    private float distanceFromGround;
     private Vector3 verocity = Vector3.zero;
 
     private void Awake()
@@ -69,6 +70,10 @@ public class Player : MonoBehaviour
                 float targetAngle = Mathf.Atan2(direction.x, direction.y) * Mathf.Rad2Deg;
                 Vector3 targetDirection = Quaternion.Euler(0, targetAngle, 0) * transform.forward;
                 verocity = targetDirection * speed;
+                if (distanceFromGround > 0.01)
+                {
+                    verocity.y = _gravity * Time.deltaTime;
+                }
                 _characon.Move(verocity * Time.deltaTime);
                 _animator.SetFloat("MoveSpeed", speed);
             }
@@ -121,9 +126,10 @@ public class Player : MonoBehaviour
         float height = isCrouching ? _player_crouch_height : _player_height;
         start.y += _characon.radius;
         end.y += height - _characon.radius;
-        float distance = 0.01f;
+        float distance = 0.05f;
         RaycastHit hit;
         isGrounded = Physics.CapsuleCast(start, end, _characon.radius, Vector3.down, out hit, distance, -1);
+        distanceFromGround = hit.distance;
     }
 
     private void Update()
