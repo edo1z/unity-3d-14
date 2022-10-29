@@ -50,7 +50,7 @@ public class Player : MonoBehaviour
     {
         Vector2 direction = _input.GetMove();
         float speed = _input.GetRun() ? _speed * _run_speed_rate : _speed;
-        if (_input.GetCrouch())
+        if (isCrouching)
         {
             speed = _speed * _crouch_speed_rate;
         }
@@ -75,21 +75,32 @@ public class Player : MonoBehaviour
 
     private void UpdatePlayerHeight()
     {
-        if (isCrouching != _input.GetCrouch())
+        if (isCrouching == _input.GetCrouch()) return;
+        if (_input.GetCrouch())
         {
-            isCrouching = _input.GetCrouch();
+            _characon.height = _player_crouch_height;
+            _characon.radius = _player_crouch_radius;
+            _characon.center = new Vector3(0, _player_crouch_height / 2f, 0);
+            isCrouching = true;
             _animator.SetBool("IsCrouching", isCrouching);
-            if (isCrouching)
-            {
-                _characon.height = _player_crouch_height;
-                _characon.radius = _player_crouch_radius;
-                _characon.center = new Vector3(0, _player_crouch_height / 2f, 0);
-            }
-            else
+        }
+        else
+        {
+            float radius = _characon.radius;
+            Vector3 start = transform.position;
+            Vector3 end = transform.position;
+            start.y += radius;
+            end.y += _player_crouch_height - radius;
+            float distance = _player_height - _player_crouch_height;
+            RaycastHit hit;
+            bool canNotStandUp = Physics.CapsuleCast(start, end, radius, Vector3.up, out hit, distance, -1);
+            if (!canNotStandUp)
             {
                 _characon.height = _player_height;
                 _characon.radius = _player_radius;
                 _characon.center = new Vector3(0, _player_height / 2f, 0);
+                isCrouching = false;
+                _animator.SetBool("IsCrouching", isCrouching);
             }
         }
     }
