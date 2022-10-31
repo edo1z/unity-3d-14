@@ -52,46 +52,75 @@ public class Player : MonoBehaviour
     private void Move()
     {
         Vector2 direction = _input.GetMove();
-
+        float speed = GetMoveSpeed();
         if (isGrounded)
         {
-            float speed = _input.GetRun() ? _speed * _run_speed_rate : _speed;
-            if (isCrouching)
-            {
-                speed = _speed * _crouch_speed_rate;
-            }
             if (direction == Vector2.zero)
             {
                 verocity = Vector3.zero;
-                _animator.SetFloat("MoveSpeed", 0);
+                speed = 0;
             }
             else
             {
                 float targetAngle = Mathf.Atan2(direction.x, direction.y) * Mathf.Rad2Deg;
                 Vector3 targetDirection = Quaternion.Euler(0, targetAngle, 0) * transform.forward;
                 verocity = targetDirection * speed;
-                if (distanceFromGround > 0.01)
-                {
-                    verocity.y = _gravity * Time.deltaTime;
-                }
-                _characon.Move(verocity * Time.deltaTime);
-                _animator.SetFloat("MoveSpeed", speed);
             }
         }
-        else
-        {
-            verocity.y += _gravity * Time.deltaTime;
-            _characon.Move(verocity * Time.deltaTime);
-        }
+        JumpAndGravity();
+        _characon.Move(verocity * Time.deltaTime);
+        _animator.SetFloat("MoveSpeed", speed);
         _animator.SetFloat("MoveForward", direction.y);
         _animator.SetFloat("MoveRight", direction.x);
         _animator.SetBool("IsGrounded", isGrounded);
     }
 
-    private void UpdatePlayerHeight()
+    private float GetMoveSpeed()
     {
-        if (isCrouching == _input.GetCrouch()) return;
-        if (_input.GetCrouch())
+        if (isCrouching)
+        {
+            return _speed * _crouch_speed_rate;
+        }
+        else
+        {
+            return _input.GetRun() ? _speed * _run_speed_rate : _speed;
+        }
+    }
+
+    private void JumpAndGravity()
+    {
+        if (isGrounded)
+        {
+            if (_input.GetJump())
+            {
+                if (isCrouching)
+                {
+                    Crouch(false);
+                }
+                else
+                {
+                    verocity.y = 10f;
+                }
+            }
+            else if (distanceFromGround > 0.01)
+            {
+                verocity.y = _gravity * Time.deltaTime;
+            }
+            else
+            {
+                verocity.y = 0;
+            }
+        }
+        else
+        {
+            verocity.y += _gravity * Time.deltaTime;
+        }
+    }
+
+    private void Crouch(bool crouching)
+    {
+        if (isCrouching == crouching) return;
+        if (crouching)
         {
             _characon.height = _player_crouch_height;
             _characon.radius = _player_crouch_radius;
@@ -136,7 +165,7 @@ public class Player : MonoBehaviour
     {
         Aim();
         CheckGrounded();
-        UpdatePlayerHeight();
+        Crouch(_input.GetCrouch());
         Move();
     }
 }

@@ -755,16 +755,16 @@ AnimatorStateMachine:
   m_ChildStates:
   - serializedVersion: 1
     m_State: {fileID: -5988291656806816872}
-    m_Position: {x: -10, y: -30, z: 0}
+    m_Position: {x: -10, y: -40, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 7919754950732206111}
-    m_Position: {x: 360, y: 150, z: 0}
+    m_Position: {x: 360, y: 160, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 1993015194862971673}
     m_Position: {x: -10, y: 150, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -1835235632801868831}
-    m_Position: {x: 360, y: -30, z: 0}
+    m_Position: {x: 360, y: -40, z: 0}
   m_ChildStateMachines: []
   m_AnyStateTransitions: []
   m_EntryTransitions: []
