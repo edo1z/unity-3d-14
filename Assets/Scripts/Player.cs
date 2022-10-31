@@ -26,6 +26,7 @@ public class Player : MonoBehaviour
     private bool isCrouching, isGrounded;
     private float distanceFromGround;
     private Vector3 verocity = Vector3.zero;
+    private float jump_horizontal_speed = 0.5f;
 
     private void Awake()
     {
@@ -52,21 +53,9 @@ public class Player : MonoBehaviour
     private void Move()
     {
         Vector2 direction = _input.GetMove();
-        float speed = GetMoveSpeed();
-        if (isGrounded)
-        {
-            if (direction == Vector2.zero)
-            {
-                verocity = Vector3.zero;
-                speed = 0;
-            }
-            else
-            {
-                float targetAngle = Mathf.Atan2(direction.x, direction.y) * Mathf.Rad2Deg;
-                Vector3 targetDirection = Quaternion.Euler(0, targetAngle, 0) * transform.forward;
-                verocity = targetDirection * speed;
-            }
-        }
+        float speed = GetMoveSpeed(direction);
+        Vector3 targetDirection = GetTargetDirection(direction);
+        UpdateHorizontalVerocity(targetDirection * speed);
         JumpAndGravity();
         _characon.Move(verocity * Time.deltaTime);
         _animator.SetFloat("MoveSpeed", speed);
@@ -75,16 +64,41 @@ public class Player : MonoBehaviour
         _animator.SetBool("IsGrounded", isGrounded);
     }
 
-    private float GetMoveSpeed()
+    private Vector3 GetTargetDirection(Vector2 direction)
     {
-        if (isCrouching)
+        if (direction == Vector2.zero) return Vector3.zero;
+        float targetAngle = Mathf.Atan2(direction.x, direction.y) * Mathf.Rad2Deg;
+        return Quaternion.Euler(0, targetAngle, 0) * transform.forward;
+    }
+
+    private void UpdateHorizontalVerocity(Vector3 horizontalVerocity)
+    {
+        verocity.x = horizontalVerocity.x;
+        verocity.z = horizontalVerocity.z;
+    }
+
+    private float GetMoveSpeed(Vector2 direction)
+    {
+        if (direction == Vector2.zero) return 0;
+        float speed = _input.GetRun() ? _speed * _run_speed_rate : _speed;
+        if (isGrounded && isCrouching)
         {
-            return _speed * _crouch_speed_rate;
+            return speed * _crouch_speed_rate;
+        }
+        else if (!isGrounded)
+        {
+            return jump_horizontal_speed;
         }
         else
         {
-            return _input.GetRun() ? _speed * _run_speed_rate : _speed;
+            return speed;
         }
+    }
+
+    private void JumpStart()
+    {
+        verocity.y = 10f;
+        jump_horizontal_speed = _input.GetRun() ? _speed * _run_speed_rate : _speed;
     }
 
     private void JumpAndGravity()
@@ -99,7 +113,7 @@ public class Player : MonoBehaviour
                 }
                 else
                 {
-                    verocity.y = 10f;
+                    JumpStart();
                 }
             }
             else if (distanceFromGround > 0.01)
